@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "636646098684",
+    "project_id": "energy-tracker-7a686",
+    "storage_bucket": "energy-tracker-7a686.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:636646098684:android:bfeaa06c758ce5eefff979",
+        "android_client_info": {
+          "package_name": "daniedev.github.energymanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "636646098684-keocusk5oi4hmma35g74jes3f3f5nt2l.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDN4h9Lxr57T4_sHIVuobcC0QwQcN8k0sc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "636646098684-keocusk5oi4hmma35g74jes3f3f5nt2l.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

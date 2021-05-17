@@ -1,4 +1,8 @@
 <resources>
-    <string name="app_name">EnergyTracker</string>
+    <string name="app_name">Energy Manager</string>
     <string name="title_activity_maps">Map</string>
+    <string name="title_activity_energy_manager">Energy Manager</string>
+    <string name="msg_token_fmt">FireBase</string>
+    <string name="default_notification_channel_id">fcm_default_channel</string>
+    <string name="fcm_message">Would you like to give an extra hand?</string>
 </resources>
