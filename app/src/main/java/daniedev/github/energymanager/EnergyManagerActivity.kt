@@ -1,12 +1,19 @@
  package daniedev.github.energymanager
 
+import android.annotation.SuppressLint
 import android.app.AlertDialog
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.ContentValues.TAG
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -30,6 +37,11 @@ class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap
     private var mapData = ArrayList<MapData>()
     private var fireBaseToken: String? = null
 
+    private val CHANNEL_ID = "energy_manager"
+    private val CHANNEL_NAME = "Energy Manager"
+    private val CHANNEL_DESC = "Energy Manager Notifications"
+
+    @SuppressLint("WrongConstant")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -54,7 +66,15 @@ class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap
                 )
             )
         }
-        initFirebase()
+        //initFirebase()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notificationChannel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_MAX)
+            notificationChannel.description = CHANNEL_DESC
+            val notificationManager = getSystemService(NotificationManager::class.java)
+            notificationManager.createNotificationChannel(notificationChannel)
+        }
+
     }
 
     private fun initFirebase() {
@@ -128,6 +148,18 @@ class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap
                     // do nothing
                 }
                 .show()
+    }
+
+    //Todo verify behaviour of manifest attributes.
+    private fun displayNotification() {
+        val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_bolt_black_24dp)
+            .setContentTitle("Energy Manager")
+            .setContentText("You have been requested to provide Energy")
+            .setPriority(NotificationCompat.PRIORITY_MAX)
+
+        val notificationManager = NotificationManagerCompat.from(this)
+        notificationManager.notify(1, notificationBuilder.build())
     }
 
 }
