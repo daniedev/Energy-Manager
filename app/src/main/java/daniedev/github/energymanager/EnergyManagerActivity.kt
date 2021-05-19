@@ -2,10 +2,9 @@
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
-import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.ContentValues.TAG
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -20,19 +19,18 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.OnCompleteListener
-import com.google.firebase.installations.remote.TokenResult
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import daniedev.github.energymanager.databinding.ActivityMapsBinding
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 
-class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
+ class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
+    private lateinit var auth: FirebaseAuth
     private val viewModel: EnergyManagerViewModel by viewModels()
     private var mapData = ArrayList<MapData>()
     private var fireBaseToken: String? = null
@@ -47,6 +45,13 @@ class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap
 
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        auth = Firebase.auth
+        if (auth.currentUser == null) {
+            startActivity(Intent(this, SignInActivity::class.java))
+            finish()
+            return
+        }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -162,6 +167,15 @@ class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap
         notificationManager.notify(1, notificationBuilder.build())
     }
 
+    override fun onStart() {
+        super.onStart()
+        auth = Firebase.auth
+        if (auth.currentUser == null) {
+            startActivity(Intent(this, SignInActivity::class.java))
+            finish()
+            return
+        }
+    }
 }
 
 data class MapData(
