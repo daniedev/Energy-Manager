@@ -1,4 +1,4 @@
- package daniedev.github.energymanager
+package daniedev.github.energymanager.view
 
 import android.annotation.SuppressLint
 import android.app.AlertDialog
@@ -9,7 +9,6 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -21,21 +20,24 @@ import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
+import dagger.android.AndroidInjection
+import daniedev.github.energymanager.R
 import daniedev.github.energymanager.databinding.ActivityMapsBinding
+import daniedev.github.energymanager.viewmodel.EnergyManagerViewModel
+import javax.inject.Inject
 
 
- class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
+class EnergyManagerActivity : AppCompatActivity(), OnMapReadyCallback,
+    GoogleMap.OnMarkerClickListener, GoogleMap.OnInfoWindowClickListener {
 
     private lateinit var mMap: GoogleMap
     private lateinit var binding: ActivityMapsBinding
-    private lateinit var auth: FirebaseAuth
-    private lateinit var database: FirebaseDatabase
-    private val viewModel: EnergyManagerViewModel by viewModels()
     private var mapData = ArrayList<MapData>()
     private var fireBaseToken: String? = null
     private var currentLatitude: String? = null
@@ -45,15 +47,24 @@ import daniedev.github.energymanager.databinding.ActivityMapsBinding
     private val CHANNEL_NAME = "Energy Manager"
     private val CHANNEL_DESC = "Energy Manager Notifications"
 
+    @Inject
+    lateinit var viewModel: EnergyManagerViewModel
+
+    @Inject
+    lateinit var auth: FirebaseAuth
+
+    @Inject
+    lateinit var database: FirebaseDatabase
+
+    @Inject
+    lateinit var usersDatabase: DatabaseReference
+
     @SuppressLint("WrongConstant")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        AndroidInjection.inject(this)
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        auth = Firebase.auth
-        database = Firebase.database
         if (auth.currentUser == null) {
             startActivity(Intent(this, SignInActivity::class.java))
             finish()
@@ -81,7 +92,8 @@ import daniedev.github.energymanager.databinding.ActivityMapsBinding
         initFirebase()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val notificationChannel = NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_MAX)
+            val notificationChannel =
+                NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_MAX)
             notificationChannel.description = CHANNEL_DESC
             val notificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(notificationChannel)
@@ -106,68 +118,65 @@ import daniedev.github.energymanager.databinding.ActivityMapsBinding
         })
     }
 
-     private fun registerDevice() {
+    private fun registerDevice() {
         getCurrentLocationFromUser()
-     }
+    }
 
-     private fun getCurrentLocationFromUser() {
-         // setup the alert builder
-         val builder = AlertDialog.Builder(this)
-         builder.setTitle("Tell us where you live")
+    private fun getCurrentLocationFromUser() {
+        // setup the alert builder
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Tell us where you live")
 
 // add a radio button list
-         val places : Array<String> = viewModel.availablePlaces.values.map { it }.toTypedArray()
+        val places: Array<String> = viewModel.availablePlaces.values.map { it }.toTypedArray()
 
-         val checkedItem = -1 // cow
-         builder.setSingleChoiceItems(places, checkedItem) { dialog, which ->
-             val latLng = viewModel.availablePlaces.keys.elementAt(which)
-             currentLatitude = latLng.latitude.toString()
-             currentLongitude = latLng.longitude.toString()
-             // user checked an item
-         }
+        val checkedItem = -1 // cow
+        builder.setSingleChoiceItems(places, checkedItem) { dialog, which ->
+            val latLng = viewModel.availablePlaces.keys.elementAt(which)
+            currentLatitude = latLng.latitude.toString()
+            currentLongitude = latLng.longitude.toString()
+            // user checked an item
+        }
 
 
 // add OK and Cancel buttons
-         builder.setPositiveButton("OK") { _, _ ->
-             var userInfo: User? = null
-             val email = auth.currentUser?.email
+        builder.setPositiveButton("OK") { _, _ ->
+            var userInfo: User? = null
+            val email = auth.currentUser?.email
 
-             // user clicked OK
-             if (email!= null && fireBaseToken!= null && currentLatitude!= null && currentLongitude!= null) {
-                 userInfo = User(email, currentLatitude!!, currentLongitude!!, fireBaseToken!!)
-             }
+            // user clicked OK
+            if (email != null && fireBaseToken != null && currentLatitude != null && currentLongitude != null) {
+                userInfo = User(email, currentLatitude!!, currentLongitude!!, fireBaseToken!!)
+            }
 
+            userInfo.let {
+                val usrStr = Gson().toJson(it, User::class.java)
+                if (auth.currentUser != null) {
+                    usersDatabase.child(auth.currentUser!!.uid)
+                        .setValue(userInfo)
+                        .addOnCompleteListener {
+                            Toast.makeText(this, "token saved", Toast.LENGTH_LONG).show()
+                        }.addOnFailureListener {
+                            Toast.makeText(this, "FAILED", Toast.LENGTH_LONG).show()
 
-             val ref = FirebaseDatabase.getInstance().getReference(NODE_USERS)
-             //val dbReference = database.reference.child(NODE_USERS)
-             userInfo.let {
-                 val usrStr = Gson().toJson(it,User::class.java)
-                 if (auth.currentUser != null ) {
-                     ref.child(auth.currentUser.uid)
-                         .setValue(usrStr)
-                         .addOnCompleteListener {
-                             Toast.makeText(this, "token saved", Toast.LENGTH_LONG).show()
-                         }.addOnFailureListener {
-                             Toast.makeText(this, "FAILED", Toast.LENGTH_LONG).show()
-
-                         }
-                 }
-             }
+                        }
+                }
+            }
 
 
-         }
-         builder.setNegativeButton("Cancel") { _, _ ->
-             Toast.makeText(this, "Please select a location to continue", Toast.LENGTH_LONG).show()
-             registerDevice()
-         }
+        }
+        builder.setNegativeButton("Cancel") { _, _ ->
+            Toast.makeText(this, "Please select a location to continue", Toast.LENGTH_LONG).show()
+            registerDevice()
+        }
 
 
 // create and show the alert dialog
-         val dialog = builder.create()
-         dialog.show()
-     }
+        val dialog = builder.create()
+        dialog.show()
+    }
 
-     /**
+    /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
      * This is where we can add markers or lines, add listeners or move the camera. In this case,
@@ -207,21 +216,21 @@ import daniedev.github.energymanager.databinding.ActivityMapsBinding
     override fun onInfoWindowClick(p0: Marker?) {
 
         val currentPlaceInfo = mapData[p0?.tag as Int]
-            AlertDialog.Builder(this@EnergyManagerActivity)
-                .setTitle(currentPlaceInfo.title)
-                .setMessage(
-                    """
+        AlertDialog.Builder(this@EnergyManagerActivity)
+            .setTitle(currentPlaceInfo.title)
+            .setMessage(
+                """
         Available Power: ${currentPlaceInfo.availablePower} kW
         Would you like to request?
         """.trimIndent()
-                )
-                .setPositiveButton("Yes") { dialog, which ->
-                        Toast.makeText(this, "your request has been sent", Toast.LENGTH_LONG).show()
-                }
-                .setNegativeButton("No") { dialog, which ->
-                    // do nothing
-                }
-                .show()
+            )
+            .setPositiveButton("Yes") { dialog, which ->
+                Toast.makeText(this, "your request has been sent", Toast.LENGTH_LONG).show()
+            }
+            .setNegativeButton("No") { dialog, which ->
+                // do nothing
+            }
+            .show()
     }
 
     //Todo verify behaviour of manifest attributes.
@@ -245,11 +254,7 @@ import daniedev.github.energymanager.databinding.ActivityMapsBinding
             return
         }
     }
-
-     companion object {
-         const val NODE_USERS = "users"
-     }
- }
+}
 
 data class MapData(
     var latLng: LatLng,
@@ -259,4 +264,4 @@ data class MapData(
     val availablePower: Int
 )
 
- data class User(val email: String, val latitude: String, val longitude: String, val token: String)
+data class User(val email: String, val latitude: String, val longitude: String, val token: String)

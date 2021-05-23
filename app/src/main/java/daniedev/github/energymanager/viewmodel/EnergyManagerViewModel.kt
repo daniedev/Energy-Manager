@@ -1,9 +1,11 @@
-package daniedev.github.energymanager
+package daniedev.github.energymanager.viewmodel
 
 import androidx.lifecycle.ViewModel
 import com.google.android.gms.maps.model.LatLng
+import daniedev.github.energymanager.provider.EnergyManagerServiceProvider
+import javax.inject.Inject
 
-class EnergyManagerViewModel : ViewModel() {
+class EnergyManagerViewModel @Inject constructor(private val energyManagerServiceProvider: EnergyManagerServiceProvider) : ViewModel() {
     val availablePlaces = mapOf (
         GUPTA_BHAVAN to "Gupta bhavan",
         BETHESDA_HOSPITAL to "Bethesda Hospital",

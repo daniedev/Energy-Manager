@@ -1,4 +1,4 @@
-package daniedev.github.energymanager
+package daniedev.github.energymanager.utils.firebase
 
 import android.content.Context
 import android.util.Log

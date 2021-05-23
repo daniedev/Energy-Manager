@@ -1,4 +1,4 @@
-package daniedev.github.energymanager
+package daniedev.github.energymanager.utils.firebase
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -13,6 +13,8 @@ import androidx.work.OneTimeWorkRequest
 import androidx.work.WorkManager
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
+import daniedev.github.energymanager.R
+import daniedev.github.energymanager.view.EnergyManagerActivity
 import java.util.*
 
 class EnergyManagerMessagingService : FirebaseMessagingService() {
@@ -36,7 +38,8 @@ class EnergyManagerMessagingService : FirebaseMessagingService() {
 
         super.onMessageReceived(remoteMessage)
         val intent = Intent(this, EnergyManagerActivity::class.java)
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val notificationID = Random().nextInt(3000)
         // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
@@ -54,7 +57,6 @@ class EnergyManagerMessagingService : FirebaseMessagingService() {
                 handleNow()
             }
         }
-
 
 
         // Check if message contains a notification payload.
@@ -119,10 +121,12 @@ class EnergyManagerMessagingService : FirebaseMessagingService() {
      * @param messageBody FCM message body received.
      */
     private fun sendNotification(messageBody: String) {
-        val intent = Intent(this,EnergyManagerActivity::class.java)
+        val intent = Intent(this, EnergyManagerActivity::class.java)
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        val pendingIntent = PendingIntent.getActivity(this, 0 /* Request code */, intent,
-            PendingIntent.FLAG_ONE_SHOT)
+        val pendingIntent = PendingIntent.getActivity(
+            this, 0 /* Request code */, intent,
+            PendingIntent.FLAG_ONE_SHOT
+        )
 
         val channelId = getString(R.string.default_notification_channel_id)
         val defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -134,13 +138,16 @@ class EnergyManagerMessagingService : FirebaseMessagingService() {
             .setSound(defaultSoundUri)
             .setContentIntent(pendingIntent)
 
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
         // Since android Oreo notification channel is needed.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId,
+            val channel = NotificationChannel(
+                channelId,
                 "Channel human readable title",
-                NotificationManager.IMPORTANCE_DEFAULT)
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
             notificationManager.createNotificationChannel(channel)
         }
 
