@@ -8,7 +8,6 @@ import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 import dagger.Module
 import dagger.Provides
-import daniedev.github.energymanager.utils.firebase.NODE_USERS
 import javax.inject.Singleton
 
 @Module
@@ -24,8 +23,6 @@ class FirebaseModule {
 
     @Singleton
     @Provides
-    fun provideUsersDatabaseReference(firebaseDatabase: FirebaseDatabase): DatabaseReference =
-        firebaseDatabase.reference.child(
-            NODE_USERS
-        )
+    fun provideDatabaseReference(firebaseDatabase: FirebaseDatabase): DatabaseReference =
+        firebaseDatabase.reference
 }
