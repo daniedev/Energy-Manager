@@ -103,3 +103,6 @@ lint/tmp/
 .idea/codeStyles/codeStyleConfig.xml
 .idea/misc.xml
 .idea/runConfigurations.xml
+/.idea/jarRepositories.xml
+/.idea/dbnavigator.xml
+/.idea/compiler.xml
