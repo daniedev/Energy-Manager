@@ -2,7 +2,9 @@ package daniedev.github.energymanager.viewmodel
 
 import android.content.DialogInterface.BUTTON_POSITIVE
 import android.util.DisplayMetrics
-import androidx.lifecycle.*
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -10,11 +12,10 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.tasks.OnCompleteListener
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
-import com.google.firebase.messaging.FirebaseMessaging
-import daniedev.github.energymanager.model.*
+import daniedev.github.energymanager.model.User
+import daniedev.github.energymanager.provider.TokenProvider
 import daniedev.github.energymanager.shared.dialog.DialogEvent
 import daniedev.github.energymanager.shared.dialog.EventContext
 import daniedev.github.energymanager.shared.dialog.EventContext.FETCH_LOCATION
@@ -23,6 +24,9 @@ import daniedev.github.energymanager.utils.common.MapData
 import daniedev.github.energymanager.utils.common.availablePlaces
 import daniedev.github.energymanager.utils.firebase.NODE_USERS
 import daniedev.github.energymanager.view.SignInActivity
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
@@ -30,6 +34,7 @@ class EnergyManagerViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val displayMetrics: DisplayMetrics,
     private val databaseReference: DatabaseReference,
+    private val tokenProvider: TokenProvider
 ) : BaseViewModel(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
 
     private var mapData = ArrayList<MapData>()
@@ -71,13 +76,14 @@ class EnergyManagerViewModel @Inject constructor(
     }
 
     private fun fetchToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener(OnCompleteListener { task ->
-            if (!task.isSuccessful) {
-                return@OnCompleteListener
-            }
-            fireBaseToken = task.result
-            getLocationInfoFromUser()
-        })
+        viewModelScope.launch {
+            tokenProvider.tokenStateFlow
+                .filter { it.isNotEmpty() }
+                .collect {
+                    fireBaseToken = it
+                    getLocationInfoFromUser()
+                }
+        }
     }
 
     override fun onMapReady(p0: GoogleMap) {
