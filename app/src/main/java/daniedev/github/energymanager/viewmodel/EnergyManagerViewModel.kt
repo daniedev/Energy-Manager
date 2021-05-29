@@ -48,6 +48,9 @@ class EnergyManagerViewModel @Inject constructor(
     val showDialogEvent: LiveData<DialogEvent>
         get() = _showDialogEvent
     private val _showDialogEvent = MutableLiveData<DialogEvent>()
+    val startLoadingMaps: LiveData<Boolean>
+        get() = _startLoadingMaps
+    private val _startLoadingMaps = MutableLiveData<Boolean>()
 
     init {
         var count = 0
@@ -139,15 +142,22 @@ class EnergyManagerViewModel @Inject constructor(
         when (eventContext) {
             FETCH_LOCATION -> {
                 currentUserLocation = availablePlaces.keys.elementAt(itemSelected)
+                removeCurrentLocationMarker(itemSelected)
+                showAvailablePlaces()
             }
             else -> return
         }
     }
 
+    private fun removeCurrentLocationMarker(currentLocation: Int) =
+        mapData.removeAt(currentLocation)
+
+    private fun showAvailablePlaces() = _startLoadingMaps.postValue(true)
+
     private fun getLocationInfoFromUser() {
         val fetchLocationDialog = DialogEvent(
             title = "Tell us where you live",
-            positiveButtonMessage = "yes",
+            positiveButtonMessage = "ok",
             itemList = availablePlaces.values.map { it }.toTypedArray(),
             shouldPublishUserInput = FETCH_LOCATION
         )

@@ -14,6 +14,8 @@ class EnergyManagerActivity : BaseActivity() {
 
     private lateinit var binding: ActivityMapsBinding
 
+    private lateinit var mapFragment: SupportMapFragment
+
     @Inject
     lateinit var viewModel: EnergyManagerViewModel
 
@@ -23,20 +25,25 @@ class EnergyManagerActivity : BaseActivity() {
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
         this.lifecycle.addObserver(viewModel)
-        subscribeToEvents()
-        val mapFragment = supportFragmentManager
+        mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(viewModel)
+        subscribeToEvents()
     }
 
     private fun subscribeToEvents() {
-        viewModel.startActivityEvent.observe(this, { clazz ->
-            val intent = Intent(this, clazz.java)
-            startActivity(intent)
-            finish()
-        })
-        viewModel.showDialogEvent.observe(this, { dialogEvent ->
-            showAlertDialog(viewModel, dialogEvent)
-        })
+        with(viewModel) {
+            startLoadingMaps.observe(this@EnergyManagerActivity, {
+                mapFragment.getMapAsync(this)
+                startLoadingMaps.removeObservers(this@EnergyManagerActivity)
+            })
+            startActivityEvent.observe(this@EnergyManagerActivity, { clazz ->
+                val intent = Intent(this@EnergyManagerActivity, clazz.java)
+                startActivity(intent)
+                finish()
+            })
+            showDialogEvent.observe(this@EnergyManagerActivity, { dialogEvent ->
+                showAlertDialog(this, dialogEvent)
+            })
+        }
     }
 }
