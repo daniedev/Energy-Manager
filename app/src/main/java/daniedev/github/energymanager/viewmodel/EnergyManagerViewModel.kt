@@ -188,9 +188,11 @@ class EnergyManagerViewModel @Inject constructor(
 
     private fun registerDevice() {
         val userInfo: User?
+        val name = firebaseAuth.currentUser?.displayName ?: "Energy Manager User"
         val email = firebaseAuth.currentUser?.email
         if (email != null && fireBaseToken != null) {
             userInfo = User(
+                name,
                 email,
                 currentUserLocation.latitude.toString(),
                 currentUserLocation.longitude.toString(),
