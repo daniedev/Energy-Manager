@@ -1,6 +1,7 @@
 package daniedev.github.energymanager.viewmodel
 
 import android.content.DialogInterface.BUTTON_POSITIVE
+import android.content.SharedPreferences
 import android.util.DisplayMetrics
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -20,7 +21,9 @@ import daniedev.github.energymanager.shared.dialog.DialogEvent
 import daniedev.github.energymanager.shared.dialog.EventContext
 import daniedev.github.energymanager.shared.dialog.EventContext.FETCH_LOCATION
 import daniedev.github.energymanager.shared.viewmodel.BaseViewModel
+import daniedev.github.energymanager.utils.common.CURRENT_LOCATION
 import daniedev.github.energymanager.utils.common.MapData
+import daniedev.github.energymanager.utils.common.RESOURCE_NOT_AVAILABLE_INT
 import daniedev.github.energymanager.utils.common.availablePlaces
 import daniedev.github.energymanager.utils.firebase.NODE_USERS
 import daniedev.github.energymanager.view.SignInActivity
@@ -34,8 +37,10 @@ class EnergyManagerViewModel @Inject constructor(
     private val firebaseAuth: FirebaseAuth,
     private val displayMetrics: DisplayMetrics,
     private val databaseReference: DatabaseReference,
-    private val tokenProvider: TokenProvider
-) : BaseViewModel(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
+    private val tokenProvider: TokenProvider,
+    private val sharedPreferences: SharedPreferences,
+) : BaseViewModel(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener,
+    GoogleMap.OnMarkerClickListener {
 
     private var mapData = ArrayList<MapData>()
     private lateinit var googleMap: GoogleMap
@@ -85,7 +90,7 @@ class EnergyManagerViewModel @Inject constructor(
                 .filter { it.isNotEmpty() }
                 .collect {
                     fireBaseToken = it
-                    getLocationInfoFromUser()
+                    checkForCurrentLocationCache()
                 }
         }
     }
@@ -144,6 +149,7 @@ class EnergyManagerViewModel @Inject constructor(
                 currentUserLocation = availablePlaces.keys.elementAt(itemSelected)
                 removeCurrentLocationMarker(itemSelected)
                 showAvailablePlaces()
+                cacheUserLocation(itemSelected)
             }
             else -> return
         }
@@ -153,6 +159,22 @@ class EnergyManagerViewModel @Inject constructor(
         mapData.removeAt(currentLocation)
 
     private fun showAvailablePlaces() = _startLoadingMaps.postValue(true)
+
+    private fun cacheUserLocation(itemSelected: Int) =
+        sharedPreferences.edit().putInt(CURRENT_LOCATION, itemSelected).apply()
+
+    private fun checkForCurrentLocationCache() {
+        if (sharedPreferences.getCurrentLocationCache().first) {
+            removeCurrentLocationMarker(sharedPreferences.getCurrentLocationCache().second)
+            showAvailablePlaces()
+        } else
+            getLocationInfoFromUser()
+    }
+
+    private fun SharedPreferences.getCurrentLocationCache() =
+        this.getInt(CURRENT_LOCATION, RESOURCE_NOT_AVAILABLE_INT).let { currentLocation ->
+            (currentLocation != RESOURCE_NOT_AVAILABLE_INT) to currentLocation
+        }
 
     private fun getLocationInfoFromUser() {
         val fetchLocationDialog = DialogEvent(
