@@ -44,6 +44,7 @@ open class BaseActivity : AppCompatActivity(),
                         }
                     }
                 }
+                setCancelable(shouldDismissDialogOnTouchOutSide)
             }
             show()
         }

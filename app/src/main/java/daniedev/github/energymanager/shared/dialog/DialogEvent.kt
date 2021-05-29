@@ -7,6 +7,7 @@ data class DialogEvent(
     val negativeButtonMessage: String? = null,
     val itemList: Array<String>? = null,
     val shouldPublishUserInput: EventContext? = null,
+    val shouldDismissDialogOnTouchOutSide: Boolean = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
