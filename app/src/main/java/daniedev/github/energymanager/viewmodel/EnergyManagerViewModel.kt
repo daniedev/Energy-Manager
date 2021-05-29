@@ -35,12 +35,13 @@ class EnergyManagerViewModel @Inject constructor(
     private val displayMetrics: DisplayMetrics,
     private val databaseReference: DatabaseReference,
     private val tokenProvider: TokenProvider
-) : BaseViewModel(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener {
+) : BaseViewModel(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener {
 
     private var mapData = ArrayList<MapData>()
     private lateinit var googleMap: GoogleMap
     private var fireBaseToken: String? = null
     private lateinit var currentUserLocation: LatLng
+    private lateinit var selectedLocation: LatLng
     val startActivityEvent: LiveData<KClass<*>>
         get() = _startActivityEvent
     private val _startActivityEvent = MutableLiveData<KClass<*>>()
@@ -96,6 +97,7 @@ class EnergyManagerViewModel @Inject constructor(
                     it?.snippet = "Available Power: ${data.availablePower} KW"
                 }
         }
+        googleMap.setOnMarkerClickListener(this)
         googleMap.setOnInfoWindowClickListener(this)
         val latLongBuilder = LatLngBounds.Builder()
         for (latLng in availablePlaces)
@@ -104,6 +106,11 @@ class EnergyManagerViewModel @Inject constructor(
         val updateCamera =
             CameraUpdateFactory.newLatLngBounds(latLngBounds, displayMetrics.widthPixels, 300, 0)
         googleMap.animateCamera(updateCamera)
+    }
+
+    override fun onMarkerClick(p0: Marker): Boolean {
+        selectedLocation = p0.position
+        return false
     }
 
     override fun onInfoWindowClick(p0: Marker) {
@@ -123,8 +130,6 @@ class EnergyManagerViewModel @Inject constructor(
             FETCH_LOCATION -> {
                 if (isPositiveResponseReceived)
                     registerDevice()
-                else
-                    getLocationInfoFromUser()
             }
             else -> return
         }
