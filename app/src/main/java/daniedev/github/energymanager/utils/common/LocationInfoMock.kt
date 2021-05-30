@@ -13,8 +13,7 @@ import com.google.android.gms.maps.model.LatLng
     val rubyBuilders = LatLng(12.9066713, 80.1547674)
     val vknApartments = LatLng(12.9023685, 80.1562024)
     val faaridhHotel = LatLng(12.9044908, 80.1534830)
-
-    val availablePlaces = mapOf(
+    val availablePlaces = mutableMapOf(
         GUPTA_BHAVAN to "Gupta bhavan",
         BETHESDA_HOSPITAL to "Bethesda Hospital",
         BHARATH_UNIVERSITY to "Bharath University",

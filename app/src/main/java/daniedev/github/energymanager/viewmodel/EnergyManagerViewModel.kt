@@ -19,10 +19,7 @@ import daniedev.github.energymanager.shared.dialog.DialogEvent
 import daniedev.github.energymanager.shared.dialog.EventContext
 import daniedev.github.energymanager.shared.dialog.EventContext.FETCH_LOCATION
 import daniedev.github.energymanager.shared.viewmodel.BaseViewModel
-import daniedev.github.energymanager.utils.common.CURRENT_LOCATION
-import daniedev.github.energymanager.utils.common.MapData
-import daniedev.github.energymanager.utils.common.RESOURCE_NOT_AVAILABLE_INT
-import daniedev.github.energymanager.utils.common.availablePlaces
+import daniedev.github.energymanager.utils.common.*
 import daniedev.github.energymanager.utils.firebase.NODE_USERS
 import daniedev.github.energymanager.view.SignInActivity
 import kotlinx.coroutines.flow.collect
@@ -43,7 +40,7 @@ class EnergyManagerViewModel @Inject constructor(
     private var mapData = ArrayList<MapData>()
     private lateinit var googleMap: GoogleMap
     private var fireBaseToken: String? = null
-    private lateinit var currentUserLocation: LatLng
+    private lateinit var userLocationInfo: UserLocationInfo
     private lateinit var selectedLocation: LatLng
     val startActivityEvent: LiveData<KClass<*>>
         get() = _startActivityEvent
@@ -55,21 +52,6 @@ class EnergyManagerViewModel @Inject constructor(
         get() = _startLoadingMaps
     private val _startLoadingMaps = MutableLiveData<Boolean>()
 
-    init {
-        var count = 0
-        availablePlaces.forEach {
-            mapData.add(
-                MapData(
-                    latLng = it.key,
-                    title = it.value,
-                    position = count++,
-                    availablePower = it.key.latitude.toString().let { latitude ->
-                        latitude.substring(latitude.length - 2).toInt() * 10
-                    }
-                )
-            )
-        }
-    }
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     fun onStart() {
@@ -89,7 +71,7 @@ class EnergyManagerViewModel @Inject constructor(
                 .filter { it.isNotEmpty() }
                 .collect {
                     fireBaseToken = it
-                    checkForCurrentLocationCache()
+                    validateUserLocationCache(sharedPreferences.getUserLocationCache())
                 }
         }
     }
@@ -135,8 +117,10 @@ class EnergyManagerViewModel @Inject constructor(
         val isPositiveResponseReceived = buttonPressed == BUTTON_POSITIVE
         when (eventContext) {
             FETCH_LOCATION -> {
-                if (isPositiveResponseReceived)
-                    registerDevice()
+                removeCurrentLocationMarker()
+                showAvailablePlaces()
+                registerDevice()
+                cacheUserLocation()
             }
             else -> return
         }
@@ -145,35 +129,51 @@ class EnergyManagerViewModel @Inject constructor(
     override fun onDialogItemSelected(eventContext: EventContext, itemSelected: Int) {
         when (eventContext) {
             FETCH_LOCATION -> {
-                currentUserLocation = availablePlaces.keys.elementAt(itemSelected)
-                removeCurrentLocationMarker(itemSelected)
-                showAvailablePlaces()
-                cacheUserLocation(itemSelected)
+                userLocationInfo = UserLocationInfo(
+                    locationReference = itemSelected,
+                    coordinates = availablePlaces.keys.elementAt(itemSelected)
+                )
             }
             else -> return
         }
     }
 
-    private fun removeCurrentLocationMarker(currentLocation: Int) =
-        mapData.removeAt(currentLocation)
+    private fun removeCurrentLocationMarker() {
+        availablePlaces.remove(userLocationInfo.coordinates)
+        updateMapData()
+    }
+
+    private fun updateMapData() {
+        var count = 0
+        mapData.clear()
+        availablePlaces.forEach {
+            mapData.add(
+                MapData(
+                    latLng = it.key,
+                    title = it.value,
+                    position = count++,
+                    availablePower = Random().nextInt(900) + 100
+                )
+            )
+        }
+    }
 
     private fun showAvailablePlaces() = _startLoadingMaps.postValue(true)
 
-    private fun cacheUserLocation(itemSelected: Int) =
-        sharedPreferences.edit().putInt(CURRENT_LOCATION, itemSelected).apply()
-
-    private fun checkForCurrentLocationCache() {
-        if (sharedPreferences.getCurrentLocationCache().first) {
-            removeCurrentLocationMarker(sharedPreferences.getCurrentLocationCache().second)
+    private fun validateUserLocationCache(userLocationReference: Int) {
+        if (userLocationReference != RESOURCE_NOT_AVAILABLE_INT) {
+            userLocationInfo = UserLocationInfo(
+                locationReference = userLocationReference,
+                coordinates = availablePlaces.keys.elementAt(userLocationReference)
+            )
+            removeCurrentLocationMarker()
             showAvailablePlaces()
         } else
             getLocationInfoFromUser()
     }
 
-    private fun SharedPreferences.getCurrentLocationCache() =
-        this.getInt(CURRENT_LOCATION, RESOURCE_NOT_AVAILABLE_INT).let { currentLocation ->
-            (currentLocation != RESOURCE_NOT_AVAILABLE_INT) to currentLocation
-        }
+    private fun SharedPreferences.getUserLocationCache() =
+        this.getInt(USER_LOCATION, RESOURCE_NOT_AVAILABLE_INT)
 
     private fun getLocationInfoFromUser() {
         val fetchLocationDialog = DialogEvent(
@@ -193,8 +193,8 @@ class EnergyManagerViewModel @Inject constructor(
             userInfo = User(
                 name,
                 email,
-                currentUserLocation.latitude.toString(),
-                currentUserLocation.longitude.toString(),
+                userLocationInfo.coordinates.latitude.toString(),
+                userLocationInfo.coordinates.longitude.toString(),
                 fireBaseToken!!
             )
         } else
@@ -206,4 +206,7 @@ class EnergyManagerViewModel @Inject constructor(
                 .setValue(userInfo)
         }
     }
+
+    private fun cacheUserLocation() =
+        sharedPreferences.edit().putInt(USER_LOCATION, userLocationInfo.locationReference).apply()
 }
