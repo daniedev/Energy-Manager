@@ -1,6 +1,7 @@
 package daniedev.github.energymanager.shared.view
 
 import android.app.AlertDialog
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
 import daniedev.github.energymanager.shared.dialog.DialogEvent
@@ -49,4 +50,7 @@ open class BaseActivity : AppCompatActivity(),
             show()
         }
     }
+
+    fun showToastMessage(message: String, duration: Int) =
+        Toast.makeText(this, message, duration).show()
 }

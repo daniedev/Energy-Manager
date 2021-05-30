@@ -44,6 +44,9 @@ class EnergyManagerActivity : BaseActivity() {
             showDialogEvent.observe(this@EnergyManagerActivity, { dialogEvent ->
                 showAlertDialog(this, dialogEvent)
             })
+            showToastMessage.observe(this@EnergyManagerActivity, { toastEvent ->
+                showToastMessage(toastEvent.first, toastEvent.second)
+            })
         }
     }
 }

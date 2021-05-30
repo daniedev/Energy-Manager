@@ -3,6 +3,7 @@ package daniedev.github.energymanager.viewmodel
 import android.content.DialogInterface.BUTTON_POSITIVE
 import android.content.SharedPreferences
 import android.util.DisplayMetrics
+import android.widget.Toast
 import androidx.lifecycle.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -13,18 +14,25 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
+import daniedev.github.energymanager.model.RequestPowerFromLocationRequest
 import daniedev.github.energymanager.model.User
+import daniedev.github.energymanager.provider.EnergyManagerServiceProvider
 import daniedev.github.energymanager.provider.TokenProvider
 import daniedev.github.energymanager.shared.dialog.DialogEvent
 import daniedev.github.energymanager.shared.dialog.EventContext
 import daniedev.github.energymanager.shared.dialog.EventContext.FETCH_LOCATION
+import daniedev.github.energymanager.shared.dialog.EventContext.REQUEST_POWER_CONFIRMATION
 import daniedev.github.energymanager.shared.viewmodel.BaseViewModel
 import daniedev.github.energymanager.utils.common.*
 import daniedev.github.energymanager.utils.firebase.NODE_USERS
 import daniedev.github.energymanager.view.SignInActivity
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.schedulers.Schedulers
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
+import java.util.*
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
@@ -34,6 +42,7 @@ class EnergyManagerViewModel @Inject constructor(
     private val databaseReference: DatabaseReference,
     private val tokenProvider: TokenProvider,
     private val sharedPreferences: SharedPreferences,
+    private val energyManagerServiceProvider: EnergyManagerServiceProvider,
 ) : BaseViewModel(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener,
     GoogleMap.OnMarkerClickListener {
 
@@ -42,6 +51,7 @@ class EnergyManagerViewModel @Inject constructor(
     private var fireBaseToken: String? = null
     private lateinit var userLocationInfo: UserLocationInfo
     private lateinit var selectedLocation: LatLng
+    private lateinit var disposable: CompositeDisposable
     val startActivityEvent: LiveData<KClass<*>>
         get() = _startActivityEvent
     private val _startActivityEvent = MutableLiveData<KClass<*>>()
@@ -51,10 +61,13 @@ class EnergyManagerViewModel @Inject constructor(
     val startLoadingMaps: LiveData<Boolean>
         get() = _startLoadingMaps
     private val _startLoadingMaps = MutableLiveData<Boolean>()
-
+    val showToastMessage: LiveData<Pair<String, Int>>
+        get() = _showToastMessage
+    private val _showToastMessage = MutableLiveData<Pair<String, Int>>()
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     fun onStart() {
+        disposable = CompositeDisposable()
         checkForAuthentication()
     }
 
@@ -109,7 +122,13 @@ class EnergyManagerViewModel @Inject constructor(
         Would you like to request?
         """.trimIndent()
         val dialogEvent =
-            DialogEvent(currentPlaceInfo.title, message, "yes", "no")
+            DialogEvent(
+                currentPlaceInfo.title,
+                message,
+                "yes",
+                "no",
+                shouldPublishUserInput = REQUEST_POWER_CONFIRMATION
+            )
         _showDialogEvent.postValue(dialogEvent)
     }
 
@@ -122,9 +141,38 @@ class EnergyManagerViewModel @Inject constructor(
                 registerDevice()
                 cacheUserLocation()
             }
-            else -> return
+            REQUEST_POWER_CONFIRMATION -> {
+                if (isPositiveResponseReceived) {
+                    requestPowerFromLocation()
+                }
+            }
         }
     }
+
+    private fun requestPowerFromLocation() {
+        val request = RequestPowerFromLocationRequest(
+            senderName = firebaseAuth.currentUser?.displayName
+                ?: "An Energy Manager User",
+            receiverLocation = selectedLocation
+        )
+        disposable.add(
+            energyManagerServiceProvider.requestPowerFromLocation(request)
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(
+                    { response -> showToastMessage(response.message) },
+                    { e ->
+                        e.printStackTrace()
+                        showToastMessage(
+                            e.localizedMessage
+                                ?: "Looks like we have some trouble processing your request.\nPlease try again later"
+                        )
+                    })
+        )
+    }
+
+    private fun showToastMessage(message: String) =
+        _showToastMessage.postValue(message to Toast.LENGTH_LONG)
 
     override fun onDialogItemSelected(eventContext: EventContext, itemSelected: Int) {
         when (eventContext) {
@@ -209,4 +257,9 @@ class EnergyManagerViewModel @Inject constructor(
 
     private fun cacheUserLocation() =
         sharedPreferences.edit().putInt(USER_LOCATION, userLocationInfo.locationReference).apply()
+
+    override fun onCleared() {
+        super.onCleared()
+        disposable.clear()
+    }
 }
