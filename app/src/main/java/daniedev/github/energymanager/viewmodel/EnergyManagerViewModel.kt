@@ -3,9 +3,7 @@ package daniedev.github.energymanager.viewmodel
 import android.content.DialogInterface.BUTTON_POSITIVE
 import android.content.SharedPreferences
 import android.util.DisplayMetrics
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -73,7 +71,8 @@ class EnergyManagerViewModel @Inject constructor(
         }
     }
 
-    override fun onStart() {
+    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    fun onStart() {
         checkForAuthentication()
     }
 
