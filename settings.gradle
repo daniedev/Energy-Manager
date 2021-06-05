@@ -1,2 +1,2 @@
-rootProject.name = "EnergyTracker"
+rootProject.name = "Energy-Manager"
 include ':app'
