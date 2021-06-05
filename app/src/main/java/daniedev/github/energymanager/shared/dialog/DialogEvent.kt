@@ -1,5 +1,9 @@
 package daniedev.github.energymanager.shared.dialog
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
 data class DialogEvent(
     val title: String,
     val message: String? = null,
@@ -8,7 +12,8 @@ data class DialogEvent(
     val itemList: Array<String>? = null,
     val shouldPublishUserInput: EventContext? = null,
     val shouldDismissDialogOnTouchOutSide: Boolean = false
-) {
+) : Parcelable {
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
