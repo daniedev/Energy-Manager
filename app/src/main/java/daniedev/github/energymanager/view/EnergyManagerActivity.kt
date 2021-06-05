@@ -24,6 +24,8 @@ class EnergyManagerActivity : BaseActivity() {
         AndroidInjection.inject(this)
         binding = ActivityMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.viewModel = viewModel
+        binding.lifecycleOwner = this
         this.lifecycle.addObserver(viewModel)
         mapFragment = supportFragmentManager
             .findFragmentById(R.id.map) as SupportMapFragment
@@ -34,7 +36,6 @@ class EnergyManagerActivity : BaseActivity() {
         with(viewModel) {
             startLoadingMaps.observe(this@EnergyManagerActivity, {
                 mapFragment.getMapAsync(this)
-                startLoadingMaps.removeObservers(this@EnergyManagerActivity)
             })
             startActivityEvent.observe(this@EnergyManagerActivity, { clazz ->
                 val intent = Intent(this@EnergyManagerActivity, clazz.java)

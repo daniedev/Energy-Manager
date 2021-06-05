@@ -8,10 +8,7 @@ import androidx.lifecycle.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.LatLngBounds
-import com.google.android.gms.maps.model.Marker
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import daniedev.github.energymanager.model.RequestPowerFromLocationRequest
@@ -64,6 +61,9 @@ class EnergyManagerViewModel @Inject constructor(
     val showToastMessage: LiveData<Pair<String, Int>>
         get() = _showToastMessage
     private val _showToastMessage = MutableLiveData<Pair<String, Int>>()
+    val showProgressBar: LiveData<Boolean>
+        get() = _showProgressBar
+    private val _showProgressBar = MutableLiveData(false)
 
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     fun onStart() {
@@ -159,6 +159,8 @@ class EnergyManagerViewModel @Inject constructor(
             energyManagerServiceProvider.requestPowerFromLocation(request)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { showLoading() }
+                .doFinally { hideLoading() }
                 .subscribe(
                     { response -> showToastMessage(response.message) },
                     { e ->
@@ -254,6 +256,10 @@ class EnergyManagerViewModel @Inject constructor(
                 .setValue(userInfo)
         }
     }
+
+    private fun showLoading() = _showProgressBar.postValue(true)
+
+    private fun hideLoading() = _showProgressBar.postValue(false)
 
     private fun cacheUserLocation() =
         sharedPreferences.edit().putInt(USER_LOCATION, userLocationInfo.locationReference).apply()
