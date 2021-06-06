@@ -211,7 +211,7 @@ class EnergyManagerViewModel @Inject constructor(
                         e.printStackTrace()
                         showToastMessage(
                             e.localizedMessage
-                                ?:  resourceProvider.getString(R.string.generic_error_message)
+                                ?: resourceProvider.getString(R.string.generic_error_message)
                         )
                     })
         )
@@ -224,7 +224,8 @@ class EnergyManagerViewModel @Inject constructor(
             FETCH_LOCATION -> {
                 userLocationInfo = UserLocationInfo(
                     locationReference = itemSelected,
-                    coordinates = availablePlaces.keys.elementAt(itemSelected)
+                    coordinates = availablePlaces.keys.elementAt(itemSelected),
+                    locationName = availablePlaces.values.elementAt(itemSelected)
                 )
             }
             else -> return
@@ -257,7 +258,8 @@ class EnergyManagerViewModel @Inject constructor(
         if (userLocationReference != RESOURCE_NOT_AVAILABLE_INT) {
             userLocationInfo = UserLocationInfo(
                 locationReference = userLocationReference,
-                coordinates = availablePlaces.keys.elementAt(userLocationReference)
+                coordinates = availablePlaces.keys.elementAt(userLocationReference),
+                locationName = availablePlaces.values.elementAt(userLocationReference)
             )
             removeCurrentLocationMarker()
             showAvailablePlaces()
@@ -280,7 +282,8 @@ class EnergyManagerViewModel @Inject constructor(
 
     private fun registerDevice() {
         val userInfo: User?
-        val name = firebaseAuth.currentUser?.displayName ?:resourceProvider.getString(R.string.generic_user_name)
+        val name = firebaseAuth.currentUser?.displayName
+            ?: resourceProvider.getString(R.string.generic_user_name)
         val email = firebaseAuth.currentUser?.email
         if (email != null && fireBaseToken != null) {
             userInfo = User(
@@ -288,6 +291,7 @@ class EnergyManagerViewModel @Inject constructor(
                 email,
                 userLocationInfo.coordinates.latitude.toString(),
                 userLocationInfo.coordinates.longitude.toString(),
+                userLocationInfo.locationName,
                 fireBaseToken!!
             )
         } else

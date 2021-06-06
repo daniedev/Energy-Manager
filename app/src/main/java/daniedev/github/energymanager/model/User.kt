@@ -5,5 +5,6 @@ data class User(
     val email: String,
     val latitude: String,
     val longitude: String,
+    val locationName: String,
     val token: String
 )

@@ -4,5 +4,6 @@ import com.google.android.gms.maps.model.LatLng
 
 data class UserLocationInfo(
     val locationReference: Int,
-    val coordinates: LatLng
+    val coordinates: LatLng,
+    val locationName: String
 )
