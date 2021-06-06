@@ -72,7 +72,7 @@ class EnergyManagerViewModel @Inject constructor(
         get() = _showProgressBar
     private val _showProgressBar = MutableLiveData(false)
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
+    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     fun onStart() {
         checkForAuthentication()
     }

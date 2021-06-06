@@ -20,17 +20,12 @@ import daniedev.github.energymanager.databinding.ActivitySignInBinding
 class SignInActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignInBinding
     private lateinit var signInClient: GoogleSignInClient
-
-    // Firebase instance variables
     private lateinit var auth: FirebaseAuth
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         binding = ActivitySignInBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         binding.signInButton.setOnClickListener { signIn() }
 
         // Configure Google Sign In
@@ -39,44 +34,36 @@ class SignInActivity : AppCompatActivity() {
             .requestEmail()
             .build()
         signInClient = GoogleSignIn.getClient(this, gso)
-
-        // Initialize FirebaseAuth
         auth = Firebase.auth
     }
 
     private fun signIn() {
-        // TODO: implement
         val signInIntent = signInClient.signInIntent
         startActivityForResult(signInIntent, RC_SIGN_IN)
     }
 
     public override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        // TODO: implement
-
         if (requestCode == RC_SIGN_IN) {
             val task = GoogleSignIn.getSignedInAccountFromIntent(data)
             try {
                 firebaseAuthWithGoogle(task.getResult(ApiException::class.java))
             } catch (e: ApiException) {
                 Log.w(TAG, "Google SignIn Failed", e)
+                e.printStackTrace()
             }
         }
-
     }
 
     private fun firebaseAuthWithGoogle(acct: GoogleSignInAccount?) {
-        // TODO: implement
-        Log.d(TAG, "firebaseAuthWithGoogle" + acct?.id)
         val credential = GoogleAuthProvider.getCredential(acct?.idToken, null)
         auth.signInWithCredential(credential)
             .addOnSuccessListener(this) {
-                Log.d(TAG, "signInWithCredential:success")
                 startActivity(Intent(this@SignInActivity, EnergyManagerActivity::class.java))
                 finish()
             }
             .addOnFailureListener(this) { e ->
-                Log.w(TAG, "signInWithCredential", e)
+                e.printStackTrace()
                 Toast.makeText(
                     this@SignInActivity, "Authentication Failed.",
                     Toast.LENGTH_SHORT

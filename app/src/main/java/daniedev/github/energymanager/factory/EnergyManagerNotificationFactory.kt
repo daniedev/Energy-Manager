@@ -89,7 +89,7 @@ class EnergyManagerNotificationFactory @Inject constructor(
                 context,
                 resourceProvider.getString(R.string.default_notification_channel_id)
             )
-                .setSmallIcon(R.drawable.ic_bolt_black_24dp)
+                .setSmallIcon(R.drawable.ic_bolt_black)
                 .setContentText(notificationBody)
                 .setColor(resourceProvider.getColor(R.color.red_700))
                 .setLights(Color.RED, 1, 1)

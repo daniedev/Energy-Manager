@@ -15,7 +15,6 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.EnergyTracker">
-        <activity android:name=".view.SignInActivity" />
         <!--
              The API key for Google Maps-based APIs is defined as a string resource.
              (See the file "res/values/google_maps_api.xml").
@@ -29,7 +28,7 @@
             android:value="@string/google_maps_key" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
-            android:resource="@drawable/ic_bolt_black_24dp" />
+            android:resource="@drawable/ic_bolt_black" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/red_700" />
@@ -47,6 +46,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".view.SignInActivity"
+            android:theme="@style/Theme.SignIn"
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity"/>
 
         <activity
             android:name=".view.DialogActivity"
