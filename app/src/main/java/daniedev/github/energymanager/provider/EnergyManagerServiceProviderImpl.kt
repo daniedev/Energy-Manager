@@ -1,5 +1,7 @@
 package daniedev.github.energymanager.provider
 
+import daniedev.github.energymanager.model.NotifyConfirmationRequest
+import daniedev.github.energymanager.model.NotifyConfirmationResponse
 import daniedev.github.energymanager.model.RequestPowerFromLocationRequest
 import daniedev.github.energymanager.model.RequestPowerFromLocationResponse
 import daniedev.github.energymanager.service.EnergyManagerService
@@ -11,4 +13,7 @@ class EnergyManagerServiceProviderImpl @Inject constructor(private val energyMan
 
     override fun requestPowerFromLocation(request: RequestPowerFromLocationRequest): Single<RequestPowerFromLocationResponse> =
         energyManagerService.requestPowerFromLocation(request)
+
+    override fun notifyConfirmationToUser(request: NotifyConfirmationRequest): Single<NotifyConfirmationResponse> =
+        energyManagerService.notifyConfirmationToUser(request)
 }
