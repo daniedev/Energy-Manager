@@ -60,6 +60,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".view.DialogActivity"
+            android:theme="@style/Theme.EnergyTrackerDialog" />
+
         <service
             android:name=".utils.firebase.EnergyManagerMessagingService"
             android:exported="false">

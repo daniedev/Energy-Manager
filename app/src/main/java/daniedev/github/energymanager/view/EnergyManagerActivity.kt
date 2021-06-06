@@ -6,7 +6,6 @@ import com.google.android.gms.maps.SupportMapFragment
 import dagger.android.AndroidInjection
 import daniedev.github.energymanager.R
 import daniedev.github.energymanager.databinding.ActivityMapsBinding
-import daniedev.github.energymanager.shared.view.BaseActivity
 import daniedev.github.energymanager.viewmodel.EnergyManagerViewModel
 import javax.inject.Inject
 

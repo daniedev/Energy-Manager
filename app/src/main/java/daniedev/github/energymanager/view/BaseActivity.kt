@@ -1,11 +1,11 @@
-package daniedev.github.energymanager.shared.view
+package daniedev.github.energymanager.view
 
 import android.app.AlertDialog
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LifecycleOwner
-import daniedev.github.energymanager.shared.dialog.DialogEvent
-import daniedev.github.energymanager.shared.viewmodel.BaseViewModel
+import daniedev.github.energymanager.utils.dialog.DialogEvent
+import daniedev.github.energymanager.viewmodel.BaseViewModel
 
 open class BaseActivity : AppCompatActivity(),
     LifecycleOwner {

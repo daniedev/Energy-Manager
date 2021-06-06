@@ -1,4 +1,4 @@
-package daniedev.github.energymanager.shared.dialog
+package daniedev.github.energymanager.utils.dialog
 
 interface DialogListener {
     fun onDialogButtonPressed(eventContext: EventContext, buttonPressed: Int) {}

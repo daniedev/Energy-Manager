@@ -1,11 +1,11 @@
-package daniedev.github.energymanager.shared.dialog
+package daniedev.github.energymanager.utils.dialog
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class DialogEvent(
-    val title: String,
+    val title: String? = null,
     val message: String? = null,
     val positiveButtonMessage: String? = null,
     val negativeButtonMessage: String? = null,
