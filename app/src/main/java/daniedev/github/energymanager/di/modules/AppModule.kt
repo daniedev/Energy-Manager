@@ -6,6 +6,9 @@ import android.content.SharedPreferences
 import android.util.DisplayMetrics
 import dagger.Module
 import dagger.Provides
+import daniedev.github.energymanager.utils.data.DataShelf
+import java.util.concurrent.ConcurrentHashMap
+import javax.inject.Singleton
 
 @Module
 class AppModule() {
@@ -23,6 +26,12 @@ class AppModule() {
     @Provides
     fun provideSharedPreferences(application: Application): SharedPreferences {
         return application.getSharedPreferences("CachedValues",Context.MODE_PRIVATE)
+    }
+
+    @Provides
+    @Singleton
+    fun provideDataContainer(): DataShelf {
+        return DataShelf(ConcurrentHashMap())
     }
 }
 
