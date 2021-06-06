@@ -44,6 +44,6 @@ class NetworkModule() {
     }
 
     companion object {
-        const val DEFAULT_TIMEOUT_IN_SECONDS = 120L
+        const val DEFAULT_TIMEOUT_IN_SECONDS = 30L
     }
 }
