@@ -3,6 +3,12 @@
     <string name="title_activity_maps">Map</string>
     <string name="title_activity_energy_manager">Energy Manager</string>
     <string name="msg_token_fmt">FireBase</string>
-    <string name="default_notification_channel_id">fcm_default_channel</string>
+    <string name="default_notification_channel_id">energy_manager_default_channel</string>
+    <string name="default_notification_channel_name">Energy Manager Recipients</string>
+    <string name="default_notification_title">Hi Energy Manager User</string>
+    <string name="default_notification_message"> You have been requested to share power </string>
+    <string name="request_confirmation_text"> Would you like to approve this request? </string>
+    <string name="request_confirmation_accept"> accept </string>
+    <string name="request_confirmation_deny"> deny </string>
     <string name="fcm_message">Would you like to give an extra hand?</string>
 </resources>

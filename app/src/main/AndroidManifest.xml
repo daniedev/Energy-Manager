@@ -2,11 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="daniedev.github.energymanager">
-    <!--
-         The ACCESS_COARSE/FINE_LOCATION permissions are not required to use
-         Google Maps Android API v2, but you must specify either coarse or fine
-         location permissions for the "MyLocation" functionality.
-    -->
+
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -30,24 +26,16 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
-        <!--
-  <meta-data
+        <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_bolt_black_24dp" />
-        -->
-        <!--
- Set color used with incoming notification messages. This is used when no color is set for the incoming
-             notification message. See README(https://goo.gl/6BKBk7) for more.
-        -->
-        <!--
- <meta-data
+        <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/red_700" />
-
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="@string/default_notification_channel_id" />
-        -->
+
         <activity
             android:name=".view.EnergyManagerActivity"
             android:label="@string/title_activity_energy_manager"
@@ -55,7 +43,6 @@
             tools:ignore="LockedOrientationActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -69,7 +56,6 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
             </intent-filter>
         </service>
     </application>
