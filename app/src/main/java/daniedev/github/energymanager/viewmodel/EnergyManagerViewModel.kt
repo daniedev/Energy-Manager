@@ -14,17 +14,19 @@ import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
+import daniedev.github.energymanager.R
 import daniedev.github.energymanager.model.NotifyConfirmationRequest
 import daniedev.github.energymanager.model.RequestPowerFromLocationRequest
 import daniedev.github.energymanager.model.User
 import daniedev.github.energymanager.provider.EnergyManagerServiceProvider
+import daniedev.github.energymanager.provider.ResourceProvider
 import daniedev.github.energymanager.provider.TokenProvider
+import daniedev.github.energymanager.utils.common.*
 import daniedev.github.energymanager.utils.dialog.DialogEvent
 import daniedev.github.energymanager.utils.dialog.EventContext
 import daniedev.github.energymanager.utils.dialog.EventContext.*
-import daniedev.github.energymanager.utils.common.*
-import daniedev.github.energymanager.utils.storage.DataShelf
 import daniedev.github.energymanager.utils.firebase.NODE_USERS
+import daniedev.github.energymanager.utils.storage.DataShelf
 import daniedev.github.energymanager.view.SignInActivity
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -43,7 +45,8 @@ class EnergyManagerViewModel @Inject constructor(
     private val tokenProvider: TokenProvider,
     private val sharedPreferences: SharedPreferences,
     private val energyManagerServiceProvider: EnergyManagerServiceProvider,
-    private val dataShelf: DataShelf
+    private val dataShelf: DataShelf,
+    private val resourceProvider: ResourceProvider
 ) : BaseViewModel(), OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener,
     GoogleMap.OnMarkerClickListener {
 
@@ -99,7 +102,8 @@ class EnergyManagerViewModel @Inject constructor(
                 .also {
                     it?.tag = data.position
                     it?.title = data.title
-                    it?.snippet = "Available Power: ${data.availablePower} KW"
+                    it?.snippet = resourceProvider.getResources()
+                        .getString(R.string.available_power, data.availablePower)
                 }
         }
         googleMap.setOnMarkerClickListener(this)
@@ -120,19 +124,19 @@ class EnergyManagerViewModel @Inject constructor(
 
     override fun onInfoWindowClick(p0: Marker) {
         val currentPlaceInfo = mapData[p0.tag as Int]
-        val message = """
-        Available Power: ${currentPlaceInfo.availablePower} kW
-        Would you like to request?
-        """.trimIndent()
-        val dialogEvent =
-            DialogEvent(
-                currentPlaceInfo.title,
-                message,
-                "yes",
-                "no",
-                shouldPublishUserInput = REQUEST_POWER_CONFIRMATION
-            )
-        _showDialogEvent.postValue(dialogEvent)
+        with(resourceProvider) {
+            val message = getResources()
+                .getString(R.string.request_text, currentPlaceInfo.availablePower)
+            val dialogEvent =
+                DialogEvent(
+                    currentPlaceInfo.title,
+                    message,
+                    getString(R.string.dialog_button_message_yes),
+                    getString(R.string.dialog_button_message_no),
+                    shouldPublishUserInput = REQUEST_POWER_CONFIRMATION
+                )
+            _showDialogEvent.postValue(dialogEvent)
+        }
     }
 
     override fun onDialogButtonPressed(eventContext: EventContext, buttonPressed: Int) {
@@ -158,7 +162,7 @@ class EnergyManagerViewModel @Inject constructor(
     private fun requestPowerFromLocation() {
         val request = RequestPowerFromLocationRequest(
             requesterName = firebaseAuth.currentUser?.displayName
-                ?: "An Energy Manager User",
+                ?: resourceProvider.getString(R.string.generic_user_name_singular),
             requesterDeviceToken = fireBaseToken!!,
             receiverLocation = selectedLocation,
             eventContext = REQUEST_POWER_PUSH_NOTIFICATION
@@ -175,7 +179,7 @@ class EnergyManagerViewModel @Inject constructor(
                         e.printStackTrace()
                         showToastMessage(
                             e.localizedMessage
-                                ?: "Looks like we have some trouble processing your request.\nPlease try again later"
+                                ?: resourceProvider.getString(R.string.generic_error_message)
                         )
                     })
         )
@@ -207,7 +211,7 @@ class EnergyManagerViewModel @Inject constructor(
                         e.printStackTrace()
                         showToastMessage(
                             e.localizedMessage
-                                ?: "Looks like we have some trouble processing your request.\nPlease try again later"
+                                ?:  resourceProvider.getString(R.string.generic_error_message)
                         )
                     })
         )
@@ -266,8 +270,8 @@ class EnergyManagerViewModel @Inject constructor(
 
     private fun getLocationInfoFromUser() {
         val fetchLocationDialog = DialogEvent(
-            title = "Tell us where you live",
-            positiveButtonMessage = "ok",
+            title = resourceProvider.getString(R.string.fetch_location_dialog_header),
+            positiveButtonMessage = resourceProvider.getString(R.string.dialog_button_message_okay),
             itemList = availablePlaces.values.map { it }.toTypedArray(),
             shouldPublishUserInput = FETCH_LOCATION
         )
@@ -276,7 +280,7 @@ class EnergyManagerViewModel @Inject constructor(
 
     private fun registerDevice() {
         val userInfo: User?
-        val name = firebaseAuth.currentUser?.displayName ?: "Energy Manager User"
+        val name = firebaseAuth.currentUser?.displayName ?:resourceProvider.getString(R.string.generic_user_name)
         val email = firebaseAuth.currentUser?.email
         if (email != null && fireBaseToken != null) {
             userInfo = User(

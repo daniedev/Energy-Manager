@@ -7,8 +7,18 @@
     <string name="default_notification_channel_name">Energy Manager Recipients</string>
     <string name="default_notification_title">Hi Energy Manager User</string>
     <string name="default_notification_message"> You have been requested to share power </string>
+    <string name="available_power"> Available Power: %1$d KW</string>
+    <string name="request_text"> Available Power: %1$d kW \nWould you like to request? </string>
     <string name="request_confirmation_text"> Would you like to approve this request? </string>
+    <string name="dialog_button_message_yes"> yes </string>
+    <string name="dialog_button_message_no"> no </string>
+    <string name="dialog_button_message_okay"> ok </string>
     <string name="request_confirmation_accept"> accept </string>
     <string name="request_confirmation_deny"> deny </string>
     <string name="fcm_message">Would you like to give an extra hand?</string>
+    <string name="generic_user_name_singular">An Energy Manager User</string>
+    <string name="generic_user_name">Energy Manager User</string>
+    <string name="generic_error_message">Looks like we have some trouble processing your request.\nPlease try again later</string>
+    <string name="fetch_location_dialog_header">Tell us where you live</string>
+
 </resources>
